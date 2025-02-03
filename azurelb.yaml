@@ -1,0 +1,69 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: store-front
+  namespace: azure-store
+  uid: f883aaaf-c021-43c9-b0bc-1ad6edab4aeb
+  resourceVersion: '2501'
+  creationTimestamp: '2025-02-02T03:42:08Z'
+  finalizers:
+    - service.kubernetes.io/load-balancer-cleanup
+  managedFields:
+    - manager: Mozilla
+      operation: Update
+      apiVersion: v1
+      time: '2025-02-02T03:42:08Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:spec:
+          f:allocateLoadBalancerNodePorts: {}
+          f:externalTrafficPolicy: {}
+          f:internalTrafficPolicy: {}
+          f:ports:
+            .: {}
+            k:{"port":80,"protocol":"TCP"}:
+              .: {}
+              f:port: {}
+              f:protocol: {}
+              f:targetPort: {}
+          f:selector: {}
+          f:sessionAffinity: {}
+          f:type: {}
+    - manager: cloud-controller-manager
+      operation: Update
+      apiVersion: v1
+      time: '2025-02-02T03:42:18Z'
+      fieldsType: FieldsV1
+      fieldsV1:
+        f:metadata:
+          f:finalizers:
+            .: {}
+            v:"service.kubernetes.io/load-balancer-cleanup": {}
+        f:status:
+          f:loadBalancer:
+            f:ingress: {}
+      subresource: status
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      nodePort: 30110
+  selector:
+    app: store-front
+  clusterIP: 10.0.228.127
+  clusterIPs:
+    - 10.0.228.127
+  type: LoadBalancer
+  sessionAffinity: None
+  externalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  allocateLoadBalancerNodePorts: true
+  internalTrafficPolicy: Cluster
+status:
+  loadBalancer:
+    ingress:
+      - ip: 13.88.100.188
+        ipMode: VIP

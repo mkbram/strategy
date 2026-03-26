@@ -1,0 +1,14 @@
+image:
+  repository: {{ kv.app.repo }}
+  tag:        {{ param.image_tag | default: kv.app.image.tag }}
+  baseTag:    {{ param.base_image_tag | default: kv.app.baseImage.tag }}
+replicaCount: {{ kv.app.replicas }}
+resources:
+  requests:
+    cpu:    {{ kv.app.resources.cpu }}
+    memory: {{ kv.app.resources.memory }}
+ingress:
+  host: {{ kv.app.ingress.host }}
+env: {{ kv.app.env.vars | toYaml }}
+podAnnotations:
+  deploy/timestamp: {{ kv.deploy.timestamp }}

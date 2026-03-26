@@ -1,0 +1,11 @@
+Scenario 1 — New app image deployment
+Jenkins receives a new image tag as a parameter (typically fired by CI after a successful image push). XLR creates a fresh deployment template execution, TFE hydrates the values file from the KV store, and the Helm provider runs helm install (creating a new named release). The release then gates through dev → LLE → prod using XLR's promotion model. Pre-requisites: the common Helm chart must exist, the TFE workspace must be created, and all KV keys for the app must be seeded before this first run.
+
+Scenario 2 — App image update
+Same flow as Scenario 1 but the Helm release already exists. Jenkins receives the new app image tag; XLR passes it as a parameter override to TFE, which writes it into the image.tag field of the values file. Helm runs helm upgrade, triggering a rolling update on the pods. All other config values come from the KV store unchanged.
+
+Scenario 3 — Repave for base image update
+Jenkins (or a scheduled job) receives a new base image tag rather than an app image tag. XLR passes this as base_image_tag. TFE reads the current app image tag from the KV store (no pipeline override needed for it), and writes the new base image tag into image.baseTag. Helm runs helm upgrade, which rebuilds pods on the new OS/runtime layer while the application code layer is untouched. A CVE scan on the new base image is recommended as a post-deploy verification step.
+
+Scenario 4 — CD-only repave (redeploy current prod image)
+This is the drift-correction or node-refresh scenario. No new image of any kind is involved. Jenkins triggers with no image tag parameter. TFE reads both image.tag and image.baseTag from the KV store (current prod values). The trick: TFE also writes a deploy/timestamp annotation into the values file, bumping it each run. This creates a real diff for the Helm provider, causing it to submit a helm upgrade that Kubernetes sees as a change → pod recreation is triggered even though the image is identical.

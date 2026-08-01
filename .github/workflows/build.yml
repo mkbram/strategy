@@ -1,21 +1,39 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ "main" ] # Triggers the build every time you push to main
+
 jobs:
-  test:
-    name: Test on node ${{ matrix.node_version }} and ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        node_version: ['18.x', '20.x']
-        os: [ubuntu-latest, windows-latest, macOS-latest]
+  build-and-push:
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node_version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node_version }}
+    # Step 1: Check out the repository code
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-    - name: npm install, build and test
-      run: |
-        npm install
-        npm run build --if-present
-        npm test
+    # Step 2: Set up Docker Buildx (enables caching and multi-platform features)
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # Step 3: Log in to the Container Registry (Example: Docker Hub)
+    # Skip or adapt this step if you only want to test-build without pushing
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    # Step 4: Build the image and push it to the registry
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: ./Dockerfile
+        push: false  # Set to false if you do not want to push to a registry yet
+        tags: |
+          ${{ secrets.DOCKERHUB_USERNAME }}/my-python-app:latest
+          ${{ secrets.DOCKERHUB_USERNAME }}/my-python-app:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
